@@ -1,0 +1,1065 @@
+/* Grotesk er grensesnittets stemme; Literata brukes bare for tekst som kommer
+   fra tekstene dine (svar, utdrag, sitater). Merkepennen markerer kilden du
+   ser på. */
+:root {
+  --papir: #f5f6f3;
+  --flate: #ffffff;
+  --blekk: #1a2130;
+  --dempet: #5e6573;
+  --linje: #e1e3de;
+  --aksent: #2b4a86;
+  --merke: #f4e27c;
+  --feil: #b3261e;
+  --grotesk: var(--font-grotesk), system-ui, sans-serif;
+  --serif: var(--font-literata), Georgia, serif;
+  color-scheme: light;
+}
+
+:root[data-tema="mork"] {
+  --papir: #12161e;
+  --flate: #1a1f29;
+  --blekk: #e4e7ec;
+  --dempet: #99a0ad;
+  --linje: #2a303c;
+  --aksent: #93b1ec;
+  --merke: rgb(242 222 107 / 0.3);
+  --feil: #f2867d;
+  color-scheme: dark;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--papir);
+  color: var(--blekk);
+  font-family: var(--grotesk);
+  font-size: 17px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Bare html har bakgrunnsfarge, så tittelfeltet (z-index -1) ikke havner bak body. */
+body {
+  background: none;
+}
+
+::selection {
+  background: var(--merke);
+  color: inherit;
+}
+
+a {
+  color: var(--aksent);
+  text-underline-offset: 0.15em;
+}
+
+:focus-visible {
+  outline: 2px solid var(--aksent);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+input,
+select,
+textarea,
+button {
+  font: inherit;
+  color: inherit;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.primar {
+  padding: 0.5rem 1.15rem;
+  border: none;
+  border-radius: 10px;
+  background: var(--aksent);
+  color: var(--flate);
+  font-weight: 600;
+}
+
+.primar:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--aksent) 82%, var(--blekk));
+}
+
+.liten {
+  padding: 0.3rem 0.85rem;
+  border: 1px solid var(--linje);
+  border-radius: 999px;
+  background: var(--flate);
+  font-size: 0.85rem;
+}
+
+.liten:hover:not(:disabled) {
+  border-color: var(--aksent);
+  color: var(--aksent);
+}
+
+.lenkeknapp {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--aksent);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.kopier {
+  font-size: 0.8rem;
+  margin-left: 0.6rem;
+}
+
+.feil {
+  color: var(--feil);
+}
+
+.meta {
+  margin: 0 0 0.5rem;
+  font-size: 0.85rem;
+  color: var(--dempet);
+}
+
+.leter {
+  animation: puls 1.6s ease-in-out infinite;
+}
+
+@keyframes puls {
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* Ramme og topp */
+
+.topp {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  /* Samme bredde som samtale og kildepanel til sammen, så kantene står i linje. */
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 1.1rem 1.5rem;
+}
+
+.ordmerke {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+
+.ordmerke a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.topp-hoyre {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+}
+
+.utvalg {
+  position: relative;
+}
+
+.utvalg-panel {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  z-index: 20;
+  width: min(24rem, 90vw);
+  max-height: 70vh;
+  overflow-y: auto;
+  padding: 0.9rem 1rem;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  background: var(--flate);
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.12);
+  font-size: 0.9rem;
+}
+
+.utvalg-panel ol {
+  margin: 0 0 0.75rem;
+  padding-left: 1.2rem;
+}
+
+.utvalg-panel li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid var(--linje);
+}
+
+.utvalg-handlinger {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin: 0;
+}
+
+.utvalg-tittel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  width: 100%;
+  color: var(--dempet);
+  font-size: 0.8rem;
+}
+
+.utvalg-tittel input {
+  padding: 0.45rem 0.6rem;
+  border: 1px solid var(--linje);
+  border-radius: 6px;
+  background: var(--papir);
+  color: var(--blekk);
+  font-size: 0.9rem;
+}
+
+.tur-bunn {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1rem;
+}
+
+.tema-bryter {
+  padding: 0.2rem 0.35rem;
+  border: none;
+  background: none;
+  color: var(--dempet);
+  font-size: 1.05rem;
+  line-height: 1;
+}
+
+.tema-bryter:hover {
+  color: var(--blekk);
+}
+
+.logginn .tema-bryter {
+  position: fixed;
+  top: 1.1rem;
+  right: 1.5rem;
+}
+
+/* Tom side */
+
+.intro {
+  max-width: 40rem;
+  margin: 13vh auto 4rem;
+  padding: 0 1.5rem;
+}
+
+.intro-tittel {
+  margin: 0 0 0.6rem;
+  font-size: 2.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
+}
+
+.intro-tekst {
+  max-width: 34rem;
+  margin: 0 0 2rem;
+  font-size: 1.05rem;
+  color: var(--dempet);
+}
+
+.forslag {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  font-size: 0.85rem;
+  color: var(--dempet);
+}
+
+.forslag span {
+  margin-right: 0.15rem;
+}
+
+.forslag .liten {
+  max-width: 18rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Skjema */
+
+.skjema {
+  padding: 0.85rem 1rem 0.75rem;
+  border: 1px solid var(--linje);
+  border-radius: 16px;
+  background: var(--flate);
+  box-shadow:
+    0 1px 2px rgb(26 33 48 / 0.04),
+    0 10px 28px -14px rgb(26 33 48 / 0.18);
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.skjema:focus-within {
+  border-color: var(--aksent);
+  box-shadow:
+    0 0 0 3px color-mix(in srgb, var(--aksent) 16%, transparent),
+    0 10px 28px -14px rgb(26 33 48 / 0.18);
+}
+
+.skjema textarea,
+.skjema input {
+  display: block;
+  width: 100%;
+  padding: 0.15rem 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 1.05rem;
+  line-height: 1.5;
+  resize: none;
+  field-sizing: content;
+  max-height: 12rem;
+}
+
+.skjema textarea::placeholder,
+.skjema input::placeholder {
+  color: var(--dempet);
+}
+
+.skjema-bunn {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.6rem;
+}
+
+/* Årsstripen: søyler med antall tekster per år, og samtidig årsfilteret */
+
+.aarstripe {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+  color: var(--dempet);
+}
+
+.stolper {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 28px;
+}
+
+.stolpe {
+  display: flex;
+  align-items: flex-end;
+  width: 11px;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 2px;
+  background: none;
+}
+
+.stolpe::before {
+  content: "";
+  width: 100%;
+  height: max(3px, calc(var(--hoyde) * 100%));
+  border-radius: 2px 2px 1px 1px;
+  background: color-mix(in srgb, var(--dempet) 38%, transparent);
+  transition: background-color 0.15s;
+}
+
+.aarstripe.filtrert .stolpe::before {
+  background: var(--linje);
+}
+
+.aarstripe.filtrert .stolpe.med::before {
+  background: color-mix(in srgb, var(--aksent) 55%, transparent);
+}
+
+.aarstripe .stolpe[aria-pressed="true"]::before,
+.aarstripe .stolpe:hover::before {
+  background: var(--aksent);
+}
+
+.aarstripe-tekst {
+  line-height: 1.3;
+}
+
+/* Samtale */
+
+.oppsett {
+  display: grid;
+  grid-template-columns: minmax(0, 42rem);
+  justify-content: center;
+  gap: 4rem;
+  max-width: 75rem;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+.oppsett.med-kilder {
+  grid-template-columns: minmax(0, 42rem) minmax(18rem, 26rem);
+}
+
+.samtale {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: calc(100vh - 4rem);
+}
+
+.tur {
+  padding: 1.5rem 0 2.25rem;
+  scroll-margin-top: 1rem;
+}
+
+.tur + .tur {
+  border-top: 1px solid var(--linje);
+}
+
+.sporsmal::first-letter {
+  text-transform: uppercase;
+}
+
+.sporsmal {
+  margin: 0 0 0.9rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+}
+
+.svar {
+  font-family: var(--serif);
+  font-size: 1.06rem;
+  line-height: 1.7;
+}
+
+.svar p,
+.svar ul {
+  margin: 0 0 1rem;
+}
+
+.svar ul {
+  padding-left: 1.2rem;
+}
+
+.svar li {
+  margin-bottom: 0.5rem;
+}
+
+.skriver > p:last-child::after,
+.skriver > ul:last-child > li:last-child::after {
+  content: "";
+  display: inline-block;
+  width: 0.45em;
+  height: 1.05em;
+  margin-left: 0.15em;
+  vertical-align: -0.15em;
+  background: var(--aksent);
+  animation: blink 1s steps(2) infinite;
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.henvisninger {
+  white-space: nowrap;
+}
+
+.henvisning {
+  display: inline-block;
+  min-width: 1.45em;
+  text-align: center;
+  /* Hevet med position i stedet for vertical-align, så linjeavstanden ikke endres. */
+  position: relative;
+  top: -0.5em;
+  margin-left: 0.12em;
+  padding: 0.12em 0.34em;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--aksent) 11%, transparent);
+  color: var(--aksent);
+  font-family: var(--grotesk);
+  font-size: 0.62em;
+  font-weight: 600;
+  line-height: 1;
+  text-decoration: none;
+  font-variant-numeric: tabular-nums;
+}
+
+a.henvisning:hover {
+  background: var(--aksent);
+  color: var(--flate);
+}
+
+/* Bakgrunn og generell kunnskap er ikke fra tekstene, så de settes i grotesk
+   med stiplet ramme. */
+.bakgrunn,
+.generelt {
+  margin: 1.25rem 0 0;
+  padding: 0.85rem 1.1rem;
+  border: 1px dashed color-mix(in srgb, var(--dempet) 45%, transparent);
+  border-radius: 10px;
+  font-size: 0.92rem;
+  color: color-mix(in srgb, var(--blekk) 85%, var(--papir));
+}
+
+.generelt {
+  margin-top: 1rem;
+  font-size: 0.98rem;
+  line-height: 1.6;
+}
+
+.generelt ul {
+  margin: 0 0 0.5rem;
+  padding-left: 1.2rem;
+}
+
+.bakgrunn p,
+.generelt p {
+  margin: 0 0 0.5rem;
+}
+
+.bakgrunn p:last-child,
+.generelt p:last-child {
+  margin-bottom: 0;
+}
+
+.bakgrunn-tittel {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--dempet);
+}
+
+.handlinger {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+}
+
+.videre {
+  margin-top: 1.5rem;
+}
+
+.videre-bolk h3 {
+  margin: 1rem 0 0.4rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.videre-bolk ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.videre-bolk li {
+  margin: 0 0 0.5rem;
+  padding: 0.5rem 0.8rem;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  font-family: var(--serif);
+  line-height: 1.55;
+}
+
+.videre-bolk li.utenfra {
+  border-style: dashed;
+  font-family: inherit;
+  font-size: 0.92rem;
+}
+
+.utenfra-merke {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: var(--dempet);
+}
+
+.vurdering {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin: 1rem 0 0;
+  font-size: 0.85rem;
+}
+
+.tommel {
+  padding: 0.2rem 0.45rem;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: none;
+  font-size: 0.95rem;
+  filter: grayscale(1);
+  opacity: 0.55;
+}
+
+.tommel:hover:not(:disabled) {
+  border-color: var(--linje);
+  filter: none;
+  opacity: 1;
+}
+
+.vurdering-skjema {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 1rem;
+  font-size: 0.85rem;
+}
+
+.vurdering-skjema input {
+  flex: 1;
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  background: var(--flate);
+  font: inherit;
+}
+
+.sitater {
+  margin-top: 1.5rem;
+}
+
+.sitat {
+  margin: 0 0 1.25rem;
+  padding-left: 1rem;
+  border-left: 2px solid var(--aksent);
+}
+
+.sitat blockquote {
+  margin: 0;
+  font-family: var(--serif);
+  line-height: 1.6;
+}
+
+.sitat figcaption {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--dempet);
+}
+
+.skjema-fast {
+  position: sticky;
+  bottom: 0;
+  margin-top: auto;
+  padding: 1.5rem 0 1.25rem;
+  background: linear-gradient(to top, var(--papir) 75%, transparent);
+}
+
+/* Kildepanel */
+
+.kildepanel {
+  position: sticky;
+  top: 0;
+  align-self: start;
+  max-height: 100vh;
+  overflow-y: auto;
+  padding: 1.5rem 0.25rem 2rem 0;
+}
+
+.kildepanel-topp {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.kildepanel-topp h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.kildeliste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.kilde {
+  display: grid;
+  grid-template-columns: 1.6rem minmax(0, 1fr);
+  gap: 0.7rem;
+  padding: 0.85rem 0;
+  border-top: 1px solid var(--linje);
+  scroll-margin-top: 1rem;
+}
+
+.kilde-nr {
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 6px;
+  background: color-mix(in srgb, var(--aksent) 11%, transparent);
+  color: var(--aksent);
+  font-size: 0.75rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 0.2s,
+    color 0.2s;
+}
+
+.kilde.aktiv .kilde-nr {
+  background: var(--aksent);
+  color: var(--flate);
+}
+
+.kilde-tittel {
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--blekk);
+  text-decoration: none;
+  /* Merkepennen: streken trekkes over tittelen når kilden åpnes. */
+  background-image: linear-gradient(var(--merke), var(--merke));
+  background-repeat: no-repeat;
+  background-size: 0% 100%;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  transition: background-size 0.5s ease-out;
+}
+
+.kilde.aktiv .kilde-tittel {
+  background-size: 100% 100%;
+}
+
+.kilde-tittel:hover {
+  text-decoration: underline;
+}
+
+.kilde .meta {
+  margin: 0.15rem 0 0;
+}
+
+.kilde summary {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+  color: var(--dempet);
+  cursor: pointer;
+}
+
+.kilde summary:hover {
+  color: var(--aksent);
+}
+
+.utdrag-boks .meta {
+  margin-top: 0.6rem;
+}
+
+.utdrag {
+  margin: 0.5rem 0 0;
+  padding: 0.8rem 0.95rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  background: var(--flate);
+  font-family: var(--serif);
+  font-size: 0.92rem;
+  line-height: 1.6;
+  white-space: pre-wrap;
+}
+
+.utdrag-boks .kopier {
+  margin: 0.4rem 0 0.6rem;
+}
+
+/* Innlogging med splash: årssøylene vokser fram, deretter navn og skjema. */
+
+.logginn {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  max-width: 26rem;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 12vh;
+}
+
+.splash {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 7.5rem;
+}
+
+.splash span {
+  flex: 1;
+  height: max(4px, calc(var(--hoyde) * 100%));
+  border-radius: 3px 3px 1px 1px;
+  background: var(--aksent);
+  opacity: calc(0.25 + var(--hoyde) * 0.75);
+  transform-origin: bottom;
+  animation: voks 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i) * 45ms);
+}
+
+@keyframes voks {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.splash-aar {
+  display: flex;
+  justify-content: space-between;
+  margin: 0.45rem 0 2.25rem;
+  font-size: 0.8rem;
+  color: var(--dempet);
+  font-variant-numeric: tabular-nums;
+  animation: fram 0.6s ease-out 0.7s both;
+}
+
+.logginn .ordmerke {
+  margin: 0 0 1.25rem;
+  font-size: 2.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.035em;
+  animation: fram 0.7s ease-out 0.8s both;
+}
+
+.logginn .skjema {
+  animation: fram 0.7s ease-out 1s both;
+}
+
+.logginn .inngang {
+  align-self: flex-start;
+  text-decoration: none;
+  animation: fram 0.7s ease-out 1s both;
+}
+
+@keyframes fram {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.logginn .skjema-bunn {
+  align-items: center;
+  font-size: 0.9rem;
+}
+
+/* Titlene på alle tekstene som et rolig felt bak splash-siden. Masken
+   holder midten fri, så titlene ikke konkurrerer med innholdet foran. */
+
+.titler {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  overflow: hidden;
+  pointer-events: none;
+  font-family: var(--serif);
+  font-size: 1.35rem;
+  font-style: italic;
+  color: color-mix(in srgb, var(--blekk) 9%, transparent);
+  white-space: nowrap;
+  mask-image: radial-gradient(ellipse 34rem 22rem at 50% 50%, transparent 45%, #000 100%);
+  animation: fram 1.6s ease-out 0.6s both;
+}
+
+.titler-rad {
+  display: flex;
+  width: max-content;
+  animation: gli var(--tid) linear infinite var(--retning);
+}
+
+.titler-rad:nth-child(odd) {
+  margin-left: -20rem;
+}
+
+.titler-tittel {
+  margin-right: 2.6rem;
+}
+
+@keyframes gli {
+  to {
+    transform: translateX(-50%);
+  }
+}
+
+.intro {
+  position: relative;
+}
+
+@media (max-width: 900px) {
+  .oppsett.med-kilder {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+  }
+
+  .kildepanel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    border-top: 1px solid var(--linje);
+  }
+}
+
+@media (max-width: 560px) {
+  .topp,
+  .oppsett,
+  .intro {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  .intro {
+    margin-top: 6vh;
+  }
+
+  .intro-tittel {
+    font-size: 2rem;
+  }
+
+  .titler {
+    font-size: 1.05rem;
+    mask-image: radial-gradient(ellipse 20rem 20rem at 50% 50%, transparent 40%, #000 90%);
+  }
+
+  .stolpe {
+    width: 8px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Ordsøk */
+
+.ordsok {
+  max-width: 42rem;
+  margin: 6vh auto 4rem;
+  padding: 0 1.5rem;
+}
+
+.skjema-rad {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ordsok-sum {
+  margin: 1.5rem 0 0.5rem;
+}
+
+.ordsok-liste {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.ordsok-tekst {
+  padding: 1rem 0;
+  border-top: 1px solid var(--linje);
+}
+
+.ordsok-tekst .meta {
+  margin: 0.15rem 0 0;
+}
+
+.ordsok-funn {
+  margin: 0.5rem 0 0;
+  font-family: var(--serif);
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.ordsok-funn .meta {
+  font-family: var(--grotesk);
+}
+
+.ordsok-funn mark {
+  background: var(--merke);
+  color: inherit;
+  border-radius: 2px;
+}
+
+/* Tidligere økter på forsiden */
+
+.okter {
+  margin-top: 2.5rem;
+}
+
+.okter h2 {
+  margin: 0 0 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 400;
+  color: var(--dempet);
+}
+
+.okter ol {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.okter li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  border-top: 1px solid var(--linje);
+}
+
+.okt {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  border: none;
+  background: none;
+  text-align: left;
+}
+
+.okt-tittel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.okt:hover .okt-tittel {
+  color: var(--aksent);
+}
+
+.okt .meta {
+  flex: none;
+  margin: 0;
+}
