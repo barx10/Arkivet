@@ -4,6 +4,10 @@ Søk og svar over dine egne tekster (blogginnlegg, artikler, bøker). Svarene by
 
 Ingen database: tekstbitene og vektorene ligger i `data/` og lastes inn i minnet. Teksten din forlater maskinen bare som kall til Gemini API.
 
+## Demo
+
+[![Se demoen på YouTube](https://img.youtube.com/vi/ASAogMyNyYM/hqdefault.jpg)](https://www.youtube.com/watch?v=ASAogMyNyYM)
+
 ## Kom i gang
 
 ```bash
