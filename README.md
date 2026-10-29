@@ -49,11 +49,11 @@ Kjør `npm run indekser` på nytt etter endringer. Bare nye eller endrede biter 
 |---|---|---|
 | `GEMINI_API_KEY` | ja | Embedding og svar. Brukes bare på serveren. |
 | `SITE_PASSWORD` | ja | Passord for hele siden. |
-| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | nei | Upstash Redis: «tidligere søk» og tommel opp/ned. |
+| `KV_REST_API_URL`, `KV_REST_API_TOKEN` | nei | Upstash Redis: «tidligere søk», tommel opp/ned og statistikk over søk og vurderinger. |
 
 ## Statistikk
 
-`/statistikk` viser nøkkeltall og diagrammer: søk per dag, de mest brukte søkene, tommel opp/ned per måned, hvilke tekster som oftest er kilde i vurderte svar, og tekster per år (klikk på et år for å se tekstene). Søk og vurderinger krever Upstash Redis; uten den vises bare tekstene.
+`/statistikk` viser nøkkeltall og diagrammer: søk per dag, de mest brukte søkene, tommel opp/ned per måned, hvilke tekster som oftest er kilde i vurderte svar, og tekster per år (klikk på et år for å se tekstene). Søk og vurderinger hentes fra Upstash Redis. Uten Redis viser siden oppdiktede eksempeltall for søk og vurderinger, tydelig merket, så den kan vises fram; tekstene per år er alltid ekte.
 
 Årsfilteret i spørsmålsfeltet velger et tidsrom: første klikk gir «fra og med», andre klikk setter sluttåret.
 

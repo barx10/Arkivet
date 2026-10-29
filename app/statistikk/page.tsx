@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import { hentTekster } from "@/lib/arkiv";
+import { eksempelStatistikk } from "@/lib/eksempeldata";
 import { dagIOslo, harLager, hentSokStatistikk, hentVurderinger } from "@/lib/lager";
 import { kilderIVurderinger, sisteDager, vurderingerPerManed } from "@/lib/statistikk";
 import TemaBryter from "../tema";
@@ -21,7 +22,7 @@ const ytterOgMidt = (n: number) => [0, Math.floor((n - 1) / 2), n - 1];
 
 export default async function Side() {
   await connection();
-  const [tekster, sok, vurderinger] = await Promise.all([
+  const [tekster, lagretSok, lagredeVurderinger] = await Promise.all([
     hentTekster(),
     hentSokStatistikk(ANTALL).catch((err) => {
       console.error("søkestatistikk feilet:", err instanceof Error ? err.message : err);
@@ -32,6 +33,11 @@ export default async function Side() {
       return null;
     }),
   ]);
+
+  // Uten lagring vises oppdiktede tall, merket som eksempeldata, så siden kan vises fram.
+  const eksempel = harLager() ? null : eksempelStatistikk(tekster, dagIOslo(), ANTALL);
+  const sok = eksempel?.sok ?? lagretSok;
+  const vurderinger = eksempel?.vurderinger ?? lagredeVurderinger;
 
   const dager = sisteDager(sok?.perDag ?? {}, dagIOslo(), DAGER);
   // Søk telles per dag fra den dagen telleren ble tatt i bruk.
@@ -63,7 +69,12 @@ export default async function Side() {
       <main className="statistikk">
         <p className="intro-tittel">Statistikk</p>
         <p className="intro-tekst">Hva du søker på, hvordan svarene vurderes, og hva arkivet inneholder.</p>
-        {!harLager() && <p className="meta">Lagringen er ikke satt opp, så søk og vurderinger mangler.</p>}
+        {eksempel && (
+          <p className="eksempeldata">
+            <strong>Eksempeldata.</strong> Lagringen er ikke satt opp, så søk og vurderinger under er oppdiktet.
+            Tekstene per år er ekte.
+          </p>
+        )}
         {harLager() && (!sok || !vurderinger) && <p className="feil">Fikk ikke hentet alle tallene fra lagringen.</p>}
 
         <div className="nokkeltall-rad">
@@ -106,7 +117,7 @@ export default async function Side() {
         <section className="diagram">
           <h2>Søk per dag</h2>
           <p className="meta">
-            De siste {DAGER} dagene.{forsteDag && ` Telles fra ${datoKort(forsteDag)} ${forsteDag.slice(0, 4)}.`}
+            De siste {DAGER} dagene.{forsteDag && !eksempel && ` Telles fra ${datoKort(forsteDag)} ${forsteDag.slice(0, 4)}.`}
           </p>
           <Soyler
             soyler={dager.map((d) => ({ etikett: datoKort(d.dag), kort: datoKort(d.dag), opp: d.antall }))}

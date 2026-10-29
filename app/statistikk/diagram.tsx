@@ -68,7 +68,8 @@ export function Soyler({
             ? `${s.etikett}: ${tall(s.opp)} opp, ${tall(s.ned ?? 0)} ned`
             : `${s.etikett}: ${tall(s.opp)} ${enhet}`;
           // Boblene ved kantene legges innover, så de ikke går ut av diagrammet.
-          const kant = i < soyler.length * 0.15 ? " venstre" : i >= soyler.length * 0.85 ? " hoyre" : "";
+          const kant =
+            i === 0 || i < soyler.length * 0.15 ? " venstre" : i === soyler.length - 1 || i >= soyler.length * 0.85 ? " hoyre" : "";
           const innhold = sum > 0 && (
             <span className="soyle-fyll" style={stil({ height: `${(sum / maks) * 100}%`, "--i": i })}>
               {!!s.ned && <span className="farge-ned" style={{ flexGrow: s.ned }} />}

@@ -1087,6 +1087,8 @@ a.henvisning:hover {
 .nokkeltall {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: 1rem 1.1rem 0.9rem;
   border: 1px solid var(--linje);
   border-radius: 8px;
@@ -1541,4 +1543,13 @@ a.henvisning:hover {
 
 .aarstripe-hint {
   opacity: 0.75;
+}
+
+.eksempeldata {
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 1rem;
+  border: 1px dashed var(--ned);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ned) 8%, transparent);
+  font-size: 0.9rem;
 }
