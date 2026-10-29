@@ -8,12 +8,23 @@ export type Arkiv = {
   titler: string[];
 };
 
+export type ArkivTekst = { fil: string; tittel: string; dato: string; url: string; kilde: "artikkel" | "bok" };
+
+// Én oppføring per tekst, i samme rekkefølge som i biter.json.
+async function lesTekster(): Promise<Map<string, ArkivTekst>> {
+  const json = await readFile(path.join(process.cwd(), "data", "biter.json"), "utf8");
+  const biter: ArkivTekst[] = JSON.parse(json);
+  return new Map(biter.map(({ fil, tittel, dato, url, kilde }) => [fil, { fil, tittel, dato, url, kilde }]));
+}
+
+// Alle tekstene, nyeste først. Brukes av statistikksiden.
+export async function hentTekster(): Promise<ArkivTekst[]> {
+  return [...(await lesTekster()).values()].sort((a, b) => b.dato.localeCompare(a.dato));
+}
+
 // Oversikt over tekstene, hentet ved bygging, siden sidene er statiske.
 export async function hentArkiv(): Promise<Arkiv> {
-  const json = await readFile(path.join(process.cwd(), "data", "biter.json"), "utf8");
-  const biter: { fil: string; tittel: string; dato: string; kilde: "artikkel" | "bok" }[] =
-    JSON.parse(json);
-  const tekster = new Map(biter.map((b) => [b.fil, b]));
+  const tekster = await lesTekster();
   const perAar = new Map<number, number>();
   let boker = 0;
   for (const t of tekster.values()) {

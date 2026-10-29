@@ -51,6 +51,12 @@ Kjør `npm run indekser` på nytt etter endringer. Bare nye eller endrede biter 
 | `SITE_PASSWORD` | ja | Passord for hele siden. |
 | `KV_REST_API_URL`, `KV_REST_API_TOKEN` | nei | Upstash Redis: «tidligere søk» og tommel opp/ned. |
 
+## Statistikk
+
+`/statistikk` viser nøkkeltall og diagrammer: søk per dag, de mest brukte søkene, tommel opp/ned per måned, hvilke tekster som oftest er kilde i vurderte svar, og tekster per år (klikk på et år for å se tekstene). Søk og vurderinger krever Upstash Redis; uten den vises bare tekstene.
+
+Årsfilteret i spørsmålsfeltet velger et tidsrom: første klikk gir «fra og med», andre klikk setter sluttåret.
+
 ## Kommandoer
 
 ```bash

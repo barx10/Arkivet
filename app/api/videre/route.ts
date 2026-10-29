@@ -1,3 +1,4 @@
+import { lesTidsrom } from "@/lib/sok";
 import { arbeidVidere } from "@/lib/videre";
 
 export const runtime = "nodejs";
@@ -6,7 +7,7 @@ export const maxDuration = 60;
 const MAKS_LENGDE = 1000;
 
 export async function POST(request: Request) {
-  let body: { tema?: unknown; kjente?: unknown; fraAar?: unknown };
+  let body: { tema?: unknown; kjente?: unknown; fraAar?: unknown; tilAar?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -23,13 +24,10 @@ export async function POST(request: Request) {
     body.kjente.every((f) => typeof f === "string" && f.length <= 300)
       ? (body.kjente as string[])
       : [];
-  const fraAar =
-    typeof body.fraAar === "number" && Number.isInteger(body.fraAar)
-      ? body.fraAar
-      : undefined;
+  const tidsrom = lesTidsrom(body);
 
   try {
-    return Response.json(await arbeidVidere(tema, kjente, { fraAar }));
+    return Response.json(await arbeidVidere(tema, kjente, tidsrom));
   } catch (err) {
     // Logger feilmeldingen, aldri temaet.
     console.error("arbeid videre feilet:", err instanceof Error ? err.message : err);

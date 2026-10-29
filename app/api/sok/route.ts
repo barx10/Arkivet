@@ -1,11 +1,11 @@
-import { sok } from "@/lib/sok";
+import { lesTidsrom, sok } from "@/lib/sok";
 
 export const runtime = "nodejs";
 
 const MAKS_LENGDE = 1000;
 
 export async function POST(request: Request) {
-  let body: { sporsmal?: unknown; fraAar?: unknown };
+  let body: { sporsmal?: unknown; fraAar?: unknown; tilAar?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -17,13 +17,10 @@ export async function POST(request: Request) {
   if (!sporsmal || sporsmal.length > MAKS_LENGDE) {
     return Response.json({ feil: "Ugyldig spørsmål" }, { status: 400 });
   }
-  const fraAar =
-    typeof body.fraAar === "number" && Number.isInteger(body.fraAar)
-      ? body.fraAar
-      : undefined;
+  const tidsrom = lesTidsrom(body);
 
   try {
-    const treff = await sok(sporsmal, { fraAar });
+    const treff = await sok(sporsmal, tidsrom);
     return Response.json({ treff });
   } catch (err) {
     // Logger feilmeldingen, aldri spørsmålet.

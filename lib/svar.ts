@@ -1,6 +1,6 @@
 import { delSvar, FINNER_IKKE } from "@/lib/bakgrunn";
 import { geminiPost, geminiStrom } from "@/lib/gemini";
-import { sok, type Bit, type Treff } from "@/lib/sok";
+import { sok, type Bit, type Tidsrom, type Treff } from "@/lib/sok";
 
 // Gjeldende stabile Flash-modell ifølge ai.google.dev/gemini-api/docs/models (sept. 2026),
 // med forrige generasjon som reserve når den er overbelastet.
@@ -164,7 +164,7 @@ export async function* samtaleSvar(
   historikk: Melding[],
   sporsmal: string,
   kjente: string[],
-  opts: { fraAar?: number } = {},
+  opts: Tidsrom = {},
 ): AsyncGenerator<Hendelse> {
   const soketekst = await selvstendigSporsmal(historikk, sporsmal);
   const treff = await sok(soketekst, opts);
@@ -183,7 +183,7 @@ export async function* samtaleSvar(
 // Ett spørsmål uten samtale.
 export async function svar(
   sporsmal: string,
-  opts: { fraAar?: number } = {},
+  opts: Tidsrom = {},
 ): Promise<Svar> {
   const treff = await sok(sporsmal, opts);
   if (treff.length === 0) return { svar: `${FINNER_IKKE}.`, bakgrunn: "", kilder: [] };
