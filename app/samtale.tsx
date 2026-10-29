@@ -85,7 +85,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
   const [kilder, setKilder] = useState<Kilde[]>([]);
   const [aktiv, setAktiv] = useState<number | null>(null);
   const [sporsmal, setSporsmal] = useState("");
-  const [fraAar, setFraAar] = useState("");
+  const [aarvalg, setAarvalg] = useState<Aarvalg>(null);
   const [lastet, setLastet] = useState(false);
   const [kopiert, setKopiert] = useState<string | null>(null);
   const [forslag, setForslag] = useState<Forslag>({ liste: FORSLAG, tidligere: false });
@@ -236,7 +236,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
         body: JSON.stringify({
           tema: t.sok ?? t.sporsmal,
           kjente: kilder.map((k) => k.fil),
-          fraAar: fraAar ? Number(fraAar) : undefined,
+          ...tidsrom(aarvalg),
         }),
       });
       if (res.status === 401) {
@@ -265,7 +265,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
       const res = await fetch("/api/sitater", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ tema: t.sok ?? t.sporsmal, fraAar: fraAar ? Number(fraAar) : undefined }),
+        body: JSON.stringify({ tema: t.sok ?? t.sporsmal, ...tidsrom(aarvalg) }),
       });
       if (res.status === 401) {
         router.push("/logginn");
@@ -354,7 +354,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
       const res = await fetch("/api/samtale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meldinger, kjente, fraAar: fraAar ? Number(fraAar) : undefined }),
+        body: JSON.stringify({ meldinger, kjente, ...tidsrom(aarvalg) }),
       });
       if (res.status === 401) {
         router.push("/logginn");
@@ -496,7 +496,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
         }}
       />
       <div className="skjema-bunn">
-        <Aarstripe aar={arkiv.aar} fraAar={fraAar} velg={setFraAar} />
+        <Aarstripe aar={arkiv.aar} valg={aarvalg} velg={setAarvalg} />
         <button type="submit" className="primar" disabled={opptatt || !sporsmal.trim()}>
           {opptatt ? "Leter …" : "Spør"}
         </button>
@@ -515,6 +515,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
         </h1>
         <div className="topp-hoyre">
           <Link href="/ord">Ordsøk</Link>
+          <Link href="/statistikk">Statistikk</Link>
           <UtvalgKnapp utvalg={utvalg} okt={ferdigeTurer} />
           {turer.length > 0 && (
             <button type="button" className="lenkeknapp" onClick={nySamtale} disabled={opptatt}>
@@ -878,43 +879,67 @@ function Vurdering({
   );
 }
 
-// Årsfilteret som søylediagram: høyden er antall tekster det året. Et klikk
-// velger «fra og med», et nytt klikk på samme år viser alle år igjen.
+// Valgt tidsrom i årsfilteret: anker er første klikk, ende det andre. Uten ende
+// gjelder «fra og med anker».
+type Aarvalg = { anker: number; ende: number | null } | null;
+
+function tidsrom(valg: Aarvalg): { fraAar?: number; tilAar?: number } {
+  if (!valg) return {};
+  if (valg.ende === null) return { fraAar: valg.anker };
+  return { fraAar: Math.min(valg.anker, valg.ende), tilAar: Math.max(valg.anker, valg.ende) };
+}
+
+// Første klikk velger «fra og med», andre klikk avslutter tidsrommet (samme år gir
+// bare det året), og et tredje klikk begynner på nytt.
+function nesteValg(valg: Aarvalg, aar: number): Aarvalg {
+  if (!valg || valg.ende !== null) return { anker: aar, ende: null };
+  return { anker: valg.anker, ende: aar };
+}
+
+// Årsfilteret som søylediagram: høyden er antall tekster det året.
 function Aarstripe({
   aar,
-  fraAar,
+  valg,
   velg,
 }: {
   aar: Arkiv["aar"];
-  fraAar: string;
-  velg: (aar: string) => void;
+  valg: Aarvalg;
+  velg: (valg: Aarvalg) => void;
 }) {
   const maks = Math.max(1, ...aar.map((a) => a.antall));
+  const { fraAar, tilAar } = tidsrom(valg);
+  const i = (a: number) => (!fraAar || a >= fraAar) && (!tilAar || a <= tilAar);
+  const antall = aar.filter((a) => i(a.aar)).reduce((sum, a) => sum + a.antall, 0);
+  const tekster = (n: number) => `${n} ${n === 1 ? "tekst" : "tekster"}`;
   return (
-    <div className={fraAar ? "aarstripe filtrert" : "aarstripe"} role="group" aria-label="Bare tekster fra og med år">
+    <div className={valg ? "aarstripe filtrert" : "aarstripe"} role="group" aria-label="Bare tekster fra et tidsrom">
       <div className="stolper">
         {aar.map(({ aar: a, antall }) => {
-          const valgt = fraAar === String(a);
-          const med = !fraAar || a >= Number(fraAar);
+          const grense = a === fraAar || a === tilAar;
           return (
             <button
               type="button"
               key={a}
-              className={`stolpe${med ? " med" : ""}`}
+              className={`stolpe${i(a) ? " med" : ""}`}
               style={{ "--hoyde": antall / maks } as CSSProperties}
-              aria-pressed={valgt}
-              aria-label={`Fra og med ${a}, ${antall} ${antall === 1 ? "tekst" : "tekster"}`}
-              title={`${a}: ${antall} ${antall === 1 ? "tekst" : "tekster"}`}
-              onClick={() => velg(valgt ? "" : String(a))}
+              aria-pressed={grense}
+              aria-label={`${
+                valg && valg.ende === null
+                  ? `Tidsrom ${Math.min(valg.anker, a)}–${Math.max(valg.anker, a)}`
+                  : `Fra og med ${a}`
+              }, ${tekster(antall)} i ${a}`}
+              title={`${a}: ${tekster(antall)}`}
+              onClick={() => velg(nesteValg(valg, a))}
             />
           );
         })}
       </div>
       <span className="aarstripe-tekst" aria-live="polite">
-        {fraAar ? (
+        {valg ? (
           <>
-            Fra {fraAar}{" "}
-            <button type="button" className="lenkeknapp" onClick={() => velg("")}>
+            {!tilAar ? `Fra ${fraAar}` : fraAar === tilAar ? `Bare ${fraAar}` : `${fraAar}–${tilAar}`}, {tekster(antall)}
+            {valg.ende === null && <span className="aarstripe-hint"> · klikk et år til for å avslutte</span>}{" "}
+            <button type="button" className="lenkeknapp" onClick={() => velg(null)}>
               vis alle
             </button>
           </>

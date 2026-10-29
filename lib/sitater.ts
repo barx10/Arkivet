@@ -1,6 +1,6 @@
 import { geminiPost } from "@/lib/gemini";
 import { erOrdrett, rensSitat } from "@/lib/ordrett";
-import { sok } from "@/lib/sok";
+import { sok, type Tidsrom } from "@/lib/sok";
 
 const MODELLER = ["gemini-3.8-flash", "gemini-3.7-flash"];
 const MAKS_SITATER = 5;
@@ -28,7 +28,7 @@ export type SitatResultat = { sitater: Sitat[]; foreslatt: number };
 
 export async function finnSitater(
   tema: string,
-  opts: { fraAar?: number } = {},
+  opts: Tidsrom = {},
 ): Promise<SitatResultat> {
   const treff = await sok(tema, opts);
   if (treff.length === 0) return { sitater: [], foreslatt: 0 };

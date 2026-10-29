@@ -96,9 +96,24 @@ function normaliser(values: number[] | undefined): Float32Array {
   return v;
 }
 
+// Årsfilteret fra forsiden. Begge grensene er med; mangler en, er den åpen.
+export type Tidsrom = { fraAar?: number; tilAar?: number };
+
+const heltall = (v: unknown) => (typeof v === "number" && Number.isInteger(v) ? v : undefined);
+
+// Leser fraAar og tilAar fra en forespørsel og ser bort fra alt annet.
+export function lesTidsrom(body: { fraAar?: unknown; tilAar?: unknown }): Tidsrom {
+  return { fraAar: heltall(body.fraAar), tilAar: heltall(body.tilAar) };
+}
+
+export const iTidsrom = (dato: string, { fraAar, tilAar }: Tidsrom) => {
+  const aar = Number(dato.slice(0, 4));
+  return !(fraAar && aar < fraAar) && !(tilAar && aar > tilAar);
+};
+
 export async function sok(
   sporsmal: string,
-  opts: { fraAar?: number; antall?: number } = {},
+  opts: Tidsrom & { antall?: number } = {},
 ): Promise<Treff[]> {
   const [{ biter, vektorer }, q] = await Promise.all([
     lastIndeks(),
@@ -107,7 +122,7 @@ export async function sok(
 
   const kandidater: { i: number; score: number }[] = [];
   for (let i = 0; i < biter.length; i++) {
-    if (opts.fraAar && Number(biter[i].dato.slice(0, 4)) < opts.fraAar) continue;
+    if (!iTidsrom(biter[i].dato, opts)) continue;
     const off = i * DIM;
     let s = 0;
     for (let d = 0; d < DIM; d++) s += q[d] * vektorer[off + d];

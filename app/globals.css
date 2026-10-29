@@ -10,6 +10,9 @@
   --aksent: #2b4a86;
   --merke: #f4e27c;
   --feil: #b3261e;
+  /* Diagramfarger, kontrollert for fargeblindhet mot --flate i hvert tema. */
+  --opp: #3a5fa8;
+  --ned: #c2571a;
   --grotesk: var(--font-grotesk), system-ui, sans-serif;
   --serif: var(--font-literata), Georgia, serif;
   color-scheme: light;
@@ -24,6 +27,8 @@
   --aksent: #93b1ec;
   --merke: rgb(242 222 107 / 0.3);
   --feil: #f2867d;
+  --opp: #6a8ad2;
+  --ned: #c87a3c;
   color-scheme: dark;
 }
 
@@ -1062,4 +1067,489 @@ a.henvisning:hover {
 .okt .meta {
   flex: none;
   margin: 0;
+}
+
+/* Statistikk */
+
+.statistikk {
+  max-width: 48rem;
+  margin: 6vh auto 4rem;
+  padding: 0 1.5rem;
+}
+
+.nokkeltall-rad {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  margin-bottom: 2.5rem;
+}
+
+.nokkeltall {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow-wrap: anywhere;
+  padding: 1rem 1.1rem 0.9rem;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--opp) 9%, var(--flate)), var(--flate) 60%);
+  animation: dukke-opp 0.5s ease-out both;
+}
+
+.nokkeltall:nth-child(2) {
+  animation-delay: 0.08s;
+}
+
+.nokkeltall:nth-child(3) {
+  animation-delay: 0.16s;
+}
+
+.endring {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.endring.opp {
+  color: var(--opp);
+}
+
+.endring.ned {
+  color: var(--ned);
+}
+
+.minisoyler {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 28px;
+  margin-top: auto;
+  padding-top: 0.75rem;
+}
+
+.minisoyler span {
+  flex: 1;
+  max-width: 10px;
+  border-radius: 2px 2px 0 0;
+  background: color-mix(in srgb, var(--opp) 55%, transparent);
+  transform-origin: bottom;
+  animation: vokse-opp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(0.2s + var(--i) * 15ms);
+}
+
+.minisoyler span:last-child {
+  background: var(--opp);
+}
+
+.fordeling {
+  display: flex;
+  gap: 2px;
+  height: 8px;
+  margin-top: auto;
+  border-radius: 4px;
+  overflow: hidden;
+  transform-origin: left;
+  animation: vokse-ut 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) 0.2s both;
+}
+
+.nokkeltall:has(.fordeling) .nokkeltall-under {
+  margin-bottom: 0.75rem;
+}
+
+.nokkeltall p {
+  margin: 0;
+}
+
+.nokkeltall-etikett,
+.nokkeltall-under {
+  font-size: 0.85rem;
+  color: var(--dempet);
+}
+
+.nokkeltall-verdi {
+  font-size: 2rem;
+  font-weight: 600;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+
+.diagram {
+  animation: dukke-opp 0.5s ease-out 0.15s both;
+  margin-bottom: 2.5rem;
+  padding: 1.25rem 1.25rem 1rem;
+  border: 1px solid var(--linje);
+  border-radius: 8px;
+  background: var(--flate);
+}
+
+.diagram h2 {
+  margin: 0 0 0.25rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.farge-opp {
+  background: var(--opp);
+}
+
+.farge-ned {
+  background: var(--ned);
+}
+
+.forklaring {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--dempet);
+}
+
+.forklaring i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  margin-right: 0.35rem;
+  border-radius: 2px;
+}
+
+.soyler,
+.soyler-akse {
+  display: grid;
+  grid-template-columns: repeat(var(--antall), minmax(0, 1fr));
+  gap: 2px;
+}
+
+.soyler {
+  position: relative;
+  height: 160px;
+  margin-top: 1.5rem;
+  border-top: 1px solid var(--linje);
+  border-bottom: 1px solid var(--linje);
+}
+
+.soyler-maks {
+  position: absolute;
+  top: -1.35rem;
+  left: 0;
+  font-size: 0.75rem;
+  color: var(--dempet);
+  font-variant-numeric: tabular-nums;
+}
+
+.soyle {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-end;
+  height: 100%;
+  padding: 0;
+  border: none;
+  border-radius: 4px 4px 0 0;
+  background: none;
+}
+
+.soyle:hover {
+  background: color-mix(in srgb, var(--linje) 50%, transparent);
+}
+
+/* Boble med verdien over søylen. */
+.soyle::after {
+  content: attr(data-tips);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  z-index: 2;
+  padding: 0.3rem 0.55rem;
+  border-radius: 6px;
+  background: var(--blekk);
+  color: var(--papir);
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transform: translate(-50%, 4px);
+  transition: opacity 0.12s, transform 0.12s;
+}
+
+.soyle.venstre::after {
+  left: 0;
+  transform: translate(0, 4px);
+}
+
+.soyle.hoyre::after {
+  left: auto;
+  right: 0;
+  transform: translate(0, 4px);
+}
+
+.soyle:hover::after,
+.soyle:focus-visible::after {
+  opacity: 1;
+  transform: translate(-50%, 0);
+}
+
+.soyle.venstre:hover::after,
+.soyle.venstre:focus-visible::after,
+.soyle.hoyre:hover::after,
+.soyle.hoyre:focus-visible::after {
+  transform: translate(0, 0);
+}
+
+.velgbar .soyle {
+  cursor: pointer;
+}
+
+.har-valgt .soyle .soyle-fyll {
+  opacity: 0.35;
+  transition: opacity 0.2s;
+}
+
+.har-valgt .soyle:hover .soyle-fyll,
+.har-valgt .soyle[aria-pressed="true"] .soyle-fyll {
+  opacity: 1;
+}
+
+.soyle-fyll {
+  transform-origin: bottom;
+  animation: vokse-opp 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(0.2s + var(--i) * 18ms);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
+  max-width: 24px;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+  overflow: hidden;
+}
+
+.soyle-fyll span {
+  flex-basis: 0;
+  min-height: 2px;
+}
+
+.soyler-akse {
+  margin-top: 0.3rem;
+  font-size: 0.75rem;
+  color: var(--dempet);
+}
+
+/* Flex, så lange etiketter flyter ut til begge sider fra midten, og den siste
+   flyter innover i stedet for ut av diagrammet. */
+.soyler-akse span {
+  display: flex;
+  justify-content: center;
+  white-space: nowrap;
+}
+
+.soyler-akse span:first-child {
+  justify-content: flex-start;
+}
+
+.soyler-akse span:last-child {
+  justify-content: flex-end;
+}
+
+.tabellvisning {
+  margin-top: 0.75rem;
+  font-size: 0.85rem;
+  color: var(--dempet);
+}
+
+.tabellvisning summary {
+  cursor: pointer;
+}
+
+.tabellvisning table {
+  margin-top: 0.5rem;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums;
+}
+
+.tabellvisning th,
+.tabellvisning td {
+  padding: 0.15rem 1rem 0.15rem 0;
+  font-weight: normal;
+  text-align: left;
+}
+
+.bjelker {
+  margin: 0.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bjelke {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+  align-items: center;
+  gap: 1rem;
+  padding: 0.3rem 0;
+  font-size: 0.9rem;
+}
+
+.bjelke:hover {
+  background: color-mix(in srgb, var(--linje) 40%, transparent);
+}
+
+.bjelke-etikett {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.bjelke-plass {
+  display: inline-block;
+  width: 1.6rem;
+  color: var(--dempet);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.bjelke-etikett .meta {
+  font-size: 0.8rem;
+}
+
+.bjelke-spor {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bjelke-fyll {
+  transform-origin: left;
+  animation: vokse-ut 0.7s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(0.2s + var(--i) * 40ms);
+  display: flex;
+  gap: 2px;
+  min-width: 2px;
+  height: 14px;
+  border-radius: 0 4px 4px 0;
+  overflow: hidden;
+}
+
+.bjelke-fyll span {
+  flex-basis: 0;
+  min-width: 2px;
+}
+
+.bjelke-verdi {
+  flex: none;
+  font-size: 0.8rem;
+  color: var(--dempet);
+  font-variant-numeric: tabular-nums;
+}
+
+.aarsliste {
+  margin-top: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--linje);
+  animation: dukke-opp 0.3s ease-out both;
+}
+
+.aarsliste-tittel {
+  margin: 0 0 0.5rem;
+  color: var(--dempet);
+}
+
+.aarsliste-tittel strong {
+  color: var(--blekk);
+  font-size: 1.3rem;
+}
+
+.aarsliste ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.aarsliste li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr);
+  gap: 0.75rem;
+  padding: 0.35rem 0;
+  font-size: 0.95rem;
+}
+
+.aarsliste a {
+  color: var(--blekk);
+  text-decoration: none;
+}
+
+.aarsliste a:hover {
+  color: var(--aksent);
+  text-decoration: underline;
+}
+
+.aarsliste-dato {
+  color: var(--dempet);
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.aarsliste .merkelapp {
+  display: inline-block;
+  padding: 0 0.4rem;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--opp) 15%, transparent);
+  color: var(--blekk);
+  font-size: 0.75rem;
+}
+
+@keyframes vokse-opp {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes vokse-ut {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes dukke-opp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+@media (max-width: 560px) {
+  .statistikk {
+    padding: 0 1rem;
+  }
+
+  .diagram {
+    padding: 1rem 0.9rem 0.75rem;
+  }
+
+  .nokkeltall-rad {
+    gap: 0.5rem;
+  }
+
+  .nokkeltall {
+    padding: 0.75rem;
+  }
+
+  .nokkeltall-verdi {
+    font-size: 1.5rem;
+  }
+
+  .bjelke {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.15rem;
+  }
+}
+
+.aarstripe-hint {
+  opacity: 0.75;
+}
+
+.eksempeldata {
+  margin: 0 0 1.5rem;
+  padding: 0.7rem 1rem;
+  border: 1px dashed var(--ned);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--ned) 8%, transparent);
+  font-size: 0.9rem;
 }

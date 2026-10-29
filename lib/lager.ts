@@ -5,6 +5,7 @@
 const PREFIKS = "bloggbot:";
 const SOK = `${PREFIKS}sok`; // sorted set: normalisert søk -> antall
 const SOK_TEKST = `${PREFIKS}sok:tekst`; // hash: normalisert søk -> siste skrivemåte
+const SOK_DAG = `${PREFIKS}sok:dag`; // hash: dato (ÅÅÅÅ-MM-DD, norsk tid) -> antall søk
 const VURDERINGER = `${PREFIKS}vurderinger`; // liste med JSON, nyeste først
 
 export type Vurdering = {
@@ -50,7 +51,39 @@ export const sokNokkel = (tekst: string) =>
 
 export async function registrerSok(tekst: string) {
   const n = sokNokkel(tekst);
-  await kjor(["ZINCRBY", SOK, 1, n], ["HSET", SOK_TEKST, n, tekst]);
+  await kjor(["ZINCRBY", SOK, 1, n], ["HSET", SOK_TEKST, n, tekst], ["HINCRBY", SOK_DAG, dagIOslo(), 1]);
+}
+
+export const dagIOslo = (tid = new Date()) =>
+  new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Oslo" }).format(tid);
+
+export type SokStatistikk = {
+  totalt: number;
+  ulike: number;
+  mest: { tekst: string; antall: number }[];
+  perDag: Record<string, number>;
+};
+
+export async function hentSokStatistikk(antall: number): Promise<SokStatistikk> {
+  const [alle, dager] = await kjor(["ZRANGE", SOK, 0, -1, "REV", "WITHSCORES"], ["HGETALL", SOK_DAG]);
+  const par = Array.isArray(alle) ? (alle as string[]) : [];
+  const sok: { nokkel: string; antall: number }[] = [];
+  for (let i = 0; i < par.length; i += 2) sok.push({ nokkel: par[i], antall: Number(par[i + 1]) });
+  const perDag: Record<string, number> = {};
+  const d = Array.isArray(dager) ? (dager as string[]) : [];
+  for (let i = 0; i < d.length; i += 2) perDag[d[i]] = Number(d[i + 1]);
+
+  const topp = sok.slice(0, antall);
+  const [tekster] = topp.length ? await kjor(["HMGET", SOK_TEKST, ...topp.map((s) => s.nokkel)]) : [[]];
+  return {
+    totalt: sok.reduce((sum, s) => sum + s.antall, 0),
+    ulike: sok.length,
+    mest: topp.map((s, i) => ({
+      tekst: (Array.isArray(tekster) && tekster[i]) || s.nokkel,
+      antall: s.antall,
+    })),
+    perDag,
+  };
 }
 
 export async function mestBrukteSok(antall: number): Promise<string[]> {

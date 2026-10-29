@@ -8,6 +8,7 @@ const nextConfig: NextConfig = {
   // Datafilene leses med fs i runtime og må tas med i serverless-funksjonene.
   outputFileTracingIncludes: {
     "/api/*": ["./data/biter.json", "./data/vektorer.bin"],
+    "/statistikk": ["./data/biter.json"],
   },
 };
 

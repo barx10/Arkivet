@@ -1,3 +1,4 @@
+import { lesTidsrom } from "@/lib/sok";
 import { samtaleSvar, type Melding } from "@/lib/svar";
 
 export const runtime = "nodejs";
@@ -22,7 +23,7 @@ function lesMeldinger(verdi: unknown): Melding[] | null {
 }
 
 export async function POST(request: Request) {
-  let body: { meldinger?: unknown; kjente?: unknown; fraAar?: unknown };
+  let body: { meldinger?: unknown; kjente?: unknown; fraAar?: unknown; tilAar?: unknown };
   try {
     body = await request.json();
   } catch {
@@ -41,10 +42,7 @@ export async function POST(request: Request) {
     body.kjente.every((f) => typeof f === "string" && f.length <= 300)
       ? (body.kjente as string[])
       : [];
-  const fraAar =
-    typeof body.fraAar === "number" && Number.isInteger(body.fraAar)
-      ? body.fraAar
-      : undefined;
+  const tidsrom = lesTidsrom(body);
 
   // Svarer med én JSON-hendelse per linje (NDJSON), så nettleseren kan vise teksten fortløpende.
   const enc = new TextEncoder();
@@ -52,7 +50,7 @@ export async function POST(request: Request) {
     async start(kontroll) {
       const send = (x: unknown) => kontroll.enqueue(enc.encode(JSON.stringify(x) + "\n"));
       try {
-        for await (const h of samtaleSvar(historikk, sporsmal, kjente, { fraAar })) send(h);
+        for await (const h of samtaleSvar(historikk, sporsmal, kjente, tidsrom)) send(h);
         send({ type: "ferdig" });
       } catch (err) {
         // Logger feilmeldingen, aldri spørsmålet.
