@@ -13,6 +13,9 @@ export type Vurdering = {
   dom: "opp" | "ned";
   sporsmal: string;
   sok?: string;
+  // "grundig" (flere søk) eller "en-tekst" (spørsmål avgrenset til én tekst).
+  modus?: "grundig" | "en-tekst";
+  delsok?: string[];
   svar: string;
   kommentar?: string;
   // Tidligere spørsmål i samtalen, så oppfølginger kan forstås i ettertid.

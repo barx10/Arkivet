@@ -1,15 +1,23 @@
 import { delSvar, FINNER_IKKE } from "@/lib/bakgrunn";
 import { geminiPost, geminiStrom } from "@/lib/gemini";
-import { sok, type Bit, type Tidsrom, type Treff } from "@/lib/sok";
+import { grundigSok } from "@/lib/grundig";
+import { sok, type Bit, type SokValg, type Tidsrom, type Treff } from "@/lib/sok";
 
 // Gjeldende stabile Flash-modell ifølge ai.google.dev/gemini-api/docs/models (sept. 2026),
 // med forrige generasjon som reserve når den er overbelastet.
 export const SVAR_MODELLER = ["gemini-3.8-flash", "gemini-3.7-flash"];
 // Tankesteg teller mot denne grensen, så den må romme både tenking og svar.
 const MAKS_TOKENS = 2048;
+const MAKS_TOKENS_GRUNDIG = 3072;
 const OMFORMULER_TOKENS = 1024;
 
 export { FINNER_IKKE };
+
+const LENGDE = "Kort og direkte svar: høyst 6 setninger, pluss oppsummeringen. Ta med det viktigste, ikke alt kildene nevner. Ingen fyllord.";
+// Grundig svar har flere kilder fra flere søk og får mer plass.
+const LENGDE_GRUNDIG = "Grundig svar: høyst 10 setninger, pluss oppsummeringen. Få med de ulike sidene kildene viser, men ikke alt de nevner. Ingen fyllord.";
+
+const systemprompt = (grundig: boolean) => SYSTEMPROMPT.replace(LENGDE, grundig ? LENGDE_GRUNDIG : LENGDE);
 
 const SYSTEMPROMPT = `Du svarer forfatteren selv på spørsmål om egne tekster (blogginnlegg og bøker). Den som spør, er den som har skrevet tekstene.
 
@@ -21,7 +29,7 @@ Regler:
 - Skriv sammenhengende tekst, ikke punktliste, med mindre spørsmålet ber om en liste.
 - Bygger svaret på tekster fra flere år, fortell i tidsrekkefølge fra eldst til nyest, så det går fram når hvert standpunkt ble skrevet og om synet har endret seg («I 2022 mente du …, men i 2025 skrev du …»).
 - Bygger svaret på tekster fra flere år, avslutt med én setning som oppsummerer utviklingen, uten kildehenvisning: «Du har gått fra å mene … til å mene …» når synet har endret seg, eller «Du har stått fast på … , men lagt til …» når det ikke har det. Ikke finn på en endring kildene ikke viser.
-- Kort og direkte svar: høyst 6 setninger, pluss oppsummeringen. Ta med det viktigste, ikke alt kildene nevner. Ingen fyllord.
+- ${LENGDE}
 - Er spørsmålet bare et stikkord, svar på hva forfatteren mener om temaet (i du-form), ikke hva temaet er.
 - Tidligere svar i samtalen er bare kontekst. Nye påstander skal bygge på kildene i <kilder>.
 
@@ -88,9 +96,9 @@ export function formaterKilder(kilder: Kilde[]): string {
   return `<kilder>\n${deler.join("\n\n")}\n</kilder>`;
 }
 
-function foresporsel(historikk: Melding[], sporsmal: string, kilder: Kilde[]) {
+function foresporsel(historikk: Melding[], sporsmal: string, kilder: Kilde[], grundig = false) {
   return {
-    systemInstruction: { parts: [{ text: SYSTEMPROMPT }] },
+    systemInstruction: { parts: [{ text: systemprompt(grundig) }] },
     contents: [
       ...historikk.map((m) => ({
         role: m.rolle === "bruker" ? "user" : "model",
@@ -102,7 +110,7 @@ function foresporsel(historikk: Melding[], sporsmal: string, kilder: Kilde[]) {
       },
     ],
     generationConfig: {
-      maxOutputTokens: MAKS_TOKENS,
+      maxOutputTokens: grundig ? MAKS_TOKENS_GRUNDIG : MAKS_TOKENS,
       thinkingConfig: { thinkingLevel: "low" },
     },
   };
@@ -156,26 +164,38 @@ export async function selvstendigSporsmal(
 }
 
 export type Hendelse =
-  | { type: "kilder"; sok: string; kilder: Kilde[] }
+  | { type: "kilder"; sok: string; delsok?: string[]; kilder: Kilde[] }
   | { type: "tekst"; tekst: string };
+
+// Grundig: flere søk planlagt av språkmodellen. fil: bare én tekst.
+// Med fil gjelder ikke grundig eller årsfilteret.
+export type SvarValg = Tidsrom & { grundig?: boolean; fil?: string };
+
+async function finnKilder(soketekst: string, opts: SvarValg) {
+  if (opts.fil) return { delsok: undefined, treff: await sok(soketekst, { fil: opts.fil }) };
+  const tidsrom: SokValg = { fraAar: opts.fraAar, tilAar: opts.tilAar };
+  if (opts.grundig) return grundigSok(soketekst, tidsrom);
+  return { delsok: undefined, treff: await sok(soketekst, tidsrom) };
+}
 
 // Hele kjeden for én melding i en samtale: omformuler, søk, strøm svaret.
 export async function* samtaleSvar(
   historikk: Melding[],
   sporsmal: string,
   kjente: string[],
-  opts: Tidsrom = {},
+  opts: SvarValg = {},
 ): AsyncGenerator<Hendelse> {
   const soketekst = await selvstendigSporsmal(historikk, sporsmal);
-  const treff = await sok(soketekst, opts);
+  const { delsok, treff } = await finnKilder(soketekst, opts);
   const kilder = nummerer(treff, kjente);
-  yield { type: "kilder", sok: soketekst, kilder };
+  yield { type: "kilder", sok: soketekst, delsok, kilder };
 
   if (kilder.length === 0) {
     yield { type: "tekst", tekst: `${FINNER_IKKE}.` };
     return;
   }
-  for await (const tekst of geminiStrom(SVAR_MODELLER, foresporsel(historikk, sporsmal, kilder))) {
+  const grundig = !opts.fil && !!opts.grundig;
+  for await (const tekst of geminiStrom(SVAR_MODELLER, foresporsel(historikk, sporsmal, kilder, grundig))) {
     yield { type: "tekst", tekst };
   }
 }
@@ -183,19 +203,20 @@ export async function* samtaleSvar(
 // Ett spørsmål uten samtale.
 export async function svar(
   sporsmal: string,
-  opts: Tidsrom = {},
-): Promise<Svar> {
-  const treff = await sok(sporsmal, opts);
-  if (treff.length === 0) return { svar: `${FINNER_IKKE}.`, bakgrunn: "", kilder: [] };
+  opts: SvarValg = {},
+): Promise<Svar & { delsok?: string[] }> {
+  const { delsok, treff } = await finnKilder(sporsmal, opts);
+  if (treff.length === 0) return { svar: `${FINNER_IKKE}.`, bakgrunn: "", kilder: [], delsok };
 
   const alle = nummerer(treff, []);
+  const grundig = !opts.fil && !!opts.grundig;
   const tekst = tekstFra(
-    await geminiPost<GenerertSvar>(SVAR_MODELLER, "generateContent", foresporsel([], sporsmal, alle)),
+    await geminiPost<GenerertSvar>(SVAR_MODELLER, "generateContent", foresporsel([], sporsmal, alle, grundig)),
   );
   if (!tekst) throw new Error("Tomt svar fra modellen");
 
   // Vis bare kildene svaret faktisk henviser til, med samme nummer som i svaret.
   const deler = delSvar(tekst);
   const brukt = henvisninger(deler.svar);
-  return { ...deler, kilder: alle.filter((k) => brukt.has(k.nr)) };
+  return { ...deler, kilder: alle.filter((k) => brukt.has(k.nr)), delsok };
 }

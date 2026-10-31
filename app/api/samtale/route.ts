@@ -1,8 +1,8 @@
-import { lesTidsrom } from "@/lib/sok";
+import { finnesFil, lesTidsrom } from "@/lib/sok";
 import { samtaleSvar, type Melding } from "@/lib/svar";
 
 export const runtime = "nodejs";
-// Omformulering, søk og strømming, pluss eventuelle nye forsøk mot Gemini.
+// Omformulering, planlegging av søk (grundig), søk og strømming, pluss eventuelle nye forsøk mot Gemini.
 export const maxDuration = 60;
 
 const MAKS_SPORSMAL = 1000;
@@ -23,7 +23,14 @@ function lesMeldinger(verdi: unknown): Melding[] | null {
 }
 
 export async function POST(request: Request) {
-  let body: { meldinger?: unknown; kjente?: unknown; fraAar?: unknown; tilAar?: unknown };
+  let body: {
+    meldinger?: unknown;
+    kjente?: unknown;
+    fraAar?: unknown;
+    tilAar?: unknown;
+    grundig?: unknown;
+    fil?: unknown;
+  };
   try {
     body = await request.json();
   } catch {
@@ -43,6 +50,12 @@ export async function POST(request: Request) {
       ? (body.kjente as string[])
       : [];
   const tidsrom = lesTidsrom(body);
+  const grundig = body.grundig === true;
+  // Spørsmål avgrenset til én tekst. Ukjente filnavn avvises.
+  const fil = typeof body.fil === "string" && body.fil.length <= 300 ? body.fil : undefined;
+  if (body.fil !== undefined && (!fil || !(await finnesFil(fil)))) {
+    return Response.json({ feil: "Ukjent tekst" }, { status: 400 });
+  }
 
   // Svarer med én JSON-hendelse per linje (NDJSON), så nettleseren kan vise teksten fortløpende.
   const enc = new TextEncoder();
@@ -50,7 +63,7 @@ export async function POST(request: Request) {
     async start(kontroll) {
       const send = (x: unknown) => kontroll.enqueue(enc.encode(JSON.stringify(x) + "\n"));
       try {
-        for await (const h of samtaleSvar(historikk, sporsmal, kjente, tidsrom)) send(h);
+        for await (const h of samtaleSvar(historikk, sporsmal, kjente, { ...tidsrom, grundig, fil })) send(h);
         send({ type: "ferdig" });
       } catch (err) {
         // Logger feilmeldingen, aldri spørsmålet.

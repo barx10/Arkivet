@@ -44,6 +44,13 @@ export async function POST(request: Request) {
     dom,
     sporsmal,
     sok: tekst(body.sok, 1000),
+    modus: body.modus === "grundig" || body.modus === "en-tekst" ? body.modus : undefined,
+    delsok: Array.isArray(body.delsok)
+      ? body.delsok
+          .map((d) => tekst(d, 300))
+          .filter((d): d is string => !!d)
+          .slice(0, 4)
+      : undefined,
     svar,
     kommentar: tekst(body.kommentar, 2000),
     tidligere,

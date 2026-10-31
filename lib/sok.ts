@@ -111,18 +111,23 @@ export const iTidsrom = (dato: string, { fraAar, tilAar }: Tidsrom) => {
   return !(fraAar && aar < fraAar) && !(tilAar && aar > tilAar);
 };
 
-export async function sok(
-  sporsmal: string,
-  opts: Tidsrom & { antall?: number } = {},
-): Promise<Treff[]> {
-  const [{ biter, vektorer }, q] = await Promise.all([
-    lastIndeks(),
-    embed(sporsmal),
-  ]);
+// Valg for ett søk. fil avgrenser søket til én tekst: da gjelder ikke årsfilteret
+// eller grensen på én bit per tekst, og flere biter fra teksten kan komme med.
+export type SokValg = Tidsrom & { antall?: number; fil?: string };
 
+export const ANTALL_EN_TEKST = 12;
+
+// Rangerer bitene mot en normalisert spørsmålsvektor. Ren funksjon, testet i
+// scripts/test-sok.ts.
+export function velgTreff(
+  biter: Bit[],
+  vektorer: Float32Array,
+  q: Float32Array,
+  opts: SokValg = {},
+): Treff[] {
   const kandidater: { i: number; score: number }[] = [];
   for (let i = 0; i < biter.length; i++) {
-    if (!iTidsrom(biter[i].dato, opts)) continue;
+    if (opts.fil ? biter[i].fil !== opts.fil : !iTidsrom(biter[i].dato, opts)) continue;
     const off = i * DIM;
     let s = 0;
     for (let d = 0; d < DIM; d++) s += q[d] * vektorer[off + d];
@@ -130,15 +135,28 @@ export async function sok(
   }
   kandidater.sort((a, b) => b.score - a.score);
 
+  const antall = opts.antall ?? (opts.fil ? ANTALL_EN_TEKST : ANTALL);
+  const maksPerFil = opts.fil ? antall : MAKS_PER_FIL;
   const perFil = new Map<string, number>();
   const valgt: Treff[] = [];
   for (const { i, score } of kandidater) {
     const bit = biter[i];
     const n = perFil.get(bit.fil) ?? 0;
-    if (n >= MAKS_PER_FIL) continue;
+    if (n >= maksPerFil) continue;
     perFil.set(bit.fil, n + 1);
     valgt.push({ ...bit, score });
-    if (valgt.length === (opts.antall ?? ANTALL)) break;
+    if (valgt.length === antall) break;
   }
   return valgt;
+}
+
+export async function sok(sporsmal: string, opts: SokValg = {}): Promise<Treff[]> {
+  const [{ biter, vektorer }, q] = await Promise.all([lastIndeks(), embed(sporsmal)]);
+  return velgTreff(biter, vektorer, q, opts);
+}
+
+// Finnes teksten i indeksen? Brukes for å avvise ukjente filnavn fra nettleseren.
+export async function finnesFil(fil: string): Promise<boolean> {
+  const { biter } = await lastIndeks();
+  return biter.some((b) => b.fil === fil);
 }
