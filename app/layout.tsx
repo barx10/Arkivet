@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 
 // Lyst tema er standard, uavhengig av systemet. Mørkt velges med bryteren og huskes
 // i localStorage. Skriptet setter temaet før siden tegnes, så det ikke blinker.
-const TEMA_SKRIPT = `(function(){try{if(localStorage.getItem("bloggbot-tema")==="mork")document.documentElement.dataset.tema="mork"}catch(e){}})()`;
+const TEMA_SKRIPT = `(function(){try{if(localStorage.getItem("arkivet-tema")==="mork")document.documentElement.dataset.tema="mork"}catch(e){}})()`;
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (

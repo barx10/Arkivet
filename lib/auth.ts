@@ -1,4 +1,4 @@
-export const AUTH_COOKIE = "bloggbot_auth";
+export const AUTH_COOKIE = "arkivet_auth";
 export const AUTH_MAKS_ALDER = 60 * 60 * 24 * 30;
 
 // Cookien inneholder en HMAC av passordet, ikke passordet selv.
@@ -12,7 +12,7 @@ export async function authToken(passord: string): Promise<string> {
     false,
     ["sign"],
   );
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode("bloggbot-auth-v1"));
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode("arkivet-auth-v1"));
   return Buffer.from(sig).toString("hex");
 }
 

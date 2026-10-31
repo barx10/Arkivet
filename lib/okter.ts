@@ -4,7 +4,7 @@ import type { Kilde } from "@/lib/svar";
 // Ingenting sendes til serveren. Rene funksjoner, så de kan testes uten nettleser.
 // Turene lagres slik samtalen har dem; typen eies av app/samtale.tsx.
 
-export const LAGRING_OKTER = "bloggbot-okter-v1";
+export const LAGRING_OKTER = "arkivet-okter-v1";
 export const MAKS_OKTER = 10;
 
 export type Okt<T> = { id: string; endret: number; turer: T[]; kilder: Kilde[] };

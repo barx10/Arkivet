@@ -48,7 +48,7 @@ const tilLagring = (turer: Tur[]) =>
 const nyId = () => crypto.randomUUID();
 
 
-const LAGRING = "bloggbot-samtale-v1";
+const LAGRING = "arkivet-samtale-v1";
 const HENVISNING = /\[(\d+(?:\s*,\s*\d+)*)\]/g;
 
 const numre = (tekst: string) =>
