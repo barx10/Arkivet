@@ -55,6 +55,14 @@ Kjør `npm run indekser` på nytt etter endringer. Bare nye eller endrede biter 
 
 `/statistikk` viser nøkkeltall og diagrammer: søk per dag, de mest brukte søkene, tommel opp/ned per måned, hvilke tekster som oftest er kilde i vurderte svar, og tekster per år (klikk på et år for å se tekstene). Søk og vurderinger hentes fra Upstash Redis. Uten Redis viser siden oppdiktede eksempeltall for søk og vurderinger, tydelig merket, så den kan vises fram; tekstene per år er alltid ekte.
 
+## Grundig svar og spør i én tekst
+
+Krysser du av for «Grundig» ved Spør-knappen, deler Gemini spørsmålet opp i 2 til 4 kortere søk. Treffene fra spørsmålet og delsøkene flettes sammen til 24 kilder, med én bit per tekst, og svaret kan bli opptil 10 setninger. Søkene vises under spørsmålet. Det koster ett ekstra modellkall, og feiler oppdelingen, blir det et vanlig søk. Mønsteret er hentet fra Ask i [Open Notebook](https://github.com/lfnovo/open-notebook).
+
+«Spør bare i denne» ved hver kilde i kildepanelet avgrenser de neste spørsmålene til den teksten, til du velger «hele arkivet». Søket henter da opptil 12 biter fra teksten, uten årsfilter og uten grundig svar.
+
+## Årsfilter
+
 Årsfilteret i spørsmålsfeltet velger et tidsrom: første klikk gir «fra og med», andre klikk setter sluttåret.
 
 ## Kommandoer

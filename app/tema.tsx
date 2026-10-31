@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 
-const NOKKEL = "bloggbot-tema";
+const NOKKEL = "arkivet-tema";
 
 // Bytter mellom lyst og mørkt tema. Skriptet i layout.tsx har allerede satt
 // data-tema før første tegning; her leses det bare av og endres ved klikk.

@@ -6,7 +6,7 @@ import type { Punkt } from "@/lib/videre";
 // tvers av samtaler. Hver del er en selvstendig kopi, ikke en peker til samtalen, som
 // bare lever i fanen. Rene funksjoner, så de kan testes uten nettleser.
 
-export const LAGRING_UTVALG = "bloggbot-utvalg-v1";
+export const LAGRING_UTVALG = "arkivet-utvalg-v1";
 
 // Delt av Arbeid videre i appen og i dokumentet.
 export const BOLKNAVN: Record<Punkt["bolk"], string> = {

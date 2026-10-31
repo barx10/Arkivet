@@ -1,8 +1,8 @@
 // Lagring i Upstash Redis via REST, uten egen klientpakke.
-// Alle nøkler har prefikset bloggbot:, så databasen kan deles med andre prosjekter.
+// Alle nøkler har prefikset arkivet:, så databasen kan deles med andre prosjekter.
 // Uten nøkler (lokalt uten .env-oppsett) lagres ingenting, og lesing gir tomt.
 
-const PREFIKS = "bloggbot:";
+const PREFIKS = "arkivet:";
 const SOK = `${PREFIKS}sok`; // sorted set: normalisert søk -> antall
 const SOK_TEKST = `${PREFIKS}sok:tekst`; // hash: normalisert søk -> siste skrivemåte
 const SOK_DAG = `${PREFIKS}sok:dag`; // hash: dato (ÅÅÅÅ-MM-DD, norsk tid) -> antall søk
@@ -13,6 +13,9 @@ export type Vurdering = {
   dom: "opp" | "ned";
   sporsmal: string;
   sok?: string;
+  // "grundig" (flere søk) eller "en-tekst" (spørsmål avgrenset til én tekst).
+  modus?: "grundig" | "en-tekst";
+  delsok?: string[];
   svar: string;
   kommentar?: string;
   // Tidligere spørsmål i samtalen, så oppfølginger kan forstås i ettertid.

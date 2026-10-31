@@ -354,6 +354,42 @@ button:disabled {
   margin-top: 0.6rem;
 }
 
+.skjema-knapper {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  flex-shrink: 0;
+}
+
+.grundig {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.85rem;
+  color: var(--dempet);
+  cursor: pointer;
+}
+
+.skjema .grundig input {
+  display: inline-block;
+  width: auto;
+  padding: 0;
+  accent-color: var(--aksent);
+  margin: 0;
+}
+
+/* Fokusringen rundt skjemaet viser fokus i feltet; avkrysningen trenger sin egen. */
+.skjema .grundig input:focus-visible {
+  outline: 2px solid var(--aksent);
+  outline-offset: 2px;
+}
+
+.avgrenset {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--dempet);
+}
+
 /* Årsstripen: søyler med antall tekster per år, og samtidig årsfilteret */
 
 .aarstripe {
@@ -952,6 +988,16 @@ a.henvisning:hover {
 
   .stolpe {
     width: 8px;
+  }
+
+  /* Årsstripen får hele bredden, og Grundig og Spør legger seg under. */
+  .skjema-bunn {
+    flex-wrap: wrap;
+    gap: 0.6rem;
+  }
+
+  .skjema-knapper {
+    margin-left: auto;
   }
 }
 

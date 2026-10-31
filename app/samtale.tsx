@@ -17,6 +17,10 @@ type Tur = {
   sporsmal: string;
   svar: string;
   sok?: string;
+  // Grundig: søkene språkmodellen la til. En tekst: tittelen søket var avgrenset til.
+  modus?: "grundig" | "en-tekst";
+  delsok?: string[];
+  entekst?: string;
   status: "venter" | "skriver" | "ferdig" | "feil";
   feil?: string;
   sitater?: { status: "venter" | "ferdig" | "feil"; liste: Sitat[]; feil?: string };
@@ -44,7 +48,7 @@ const tilLagring = (turer: Tur[]) =>
 const nyId = () => crypto.randomUUID();
 
 
-const LAGRING = "bloggbot-samtale-v1";
+const LAGRING = "arkivet-samtale-v1";
 const HENVISNING = /\[(\d+(?:\s*,\s*\d+)*)\]/g;
 
 const numre = (tekst: string) =>
@@ -86,6 +90,9 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
   const [aktiv, setAktiv] = useState<number | null>(null);
   const [sporsmal, setSporsmal] = useState("");
   const [aarvalg, setAarvalg] = useState<Aarvalg>(null);
+  // Grundig: flere søk og lengre svar. Avgrenset: spør bare i én tekst.
+  const [grundig, setGrundig] = useState(false);
+  const [avgrenset, setAvgrenset] = useState<{ fil: string; tittel: string } | null>(null);
   const [lastet, setLastet] = useState(false);
   const [kopiert, setKopiert] = useState<string | null>(null);
   const [forslag, setForslag] = useState<Forslag>({ liste: FORSLAG, tidligere: false });
@@ -337,7 +344,11 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
     meldinger.push({ rolle: "bruker", tekst });
     const kjente = kilder.map((k) => k.fil);
 
-    setTurer((ts) => [...ts, { sporsmal: tekst, svar: "", status: "venter" }]);
+    const modus: Tur["modus"] = avgrenset ? "en-tekst" : grundig ? "grundig" : undefined;
+    setTurer((ts) => [
+      ...ts,
+      { sporsmal: tekst, svar: "", status: "venter", modus, entekst: avgrenset?.tittel },
+    ]);
     if (tekst !== MINE_ARGUMENTER) {
       fetch("/api/forslag", {
         method: "POST",
@@ -354,7 +365,11 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
       const res = await fetch("/api/samtale", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ meldinger, kjente, ...tidsrom(aarvalg) }),
+        body: JSON.stringify(
+          avgrenset
+            ? { meldinger, kjente, fil: avgrenset.fil }
+            : { meldinger, kjente, grundig, ...tidsrom(aarvalg) },
+        ),
       });
       if (res.status === 401) {
         router.push("/logginn");
@@ -368,7 +383,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
       await lesHendelser(res, (h) => {
         if (h.type === "kilder") {
           nye = h.kilder;
-          oppdaterSiste({ sok: h.sok, status: "skriver" });
+          oppdaterSiste({ sok: h.sok, delsok: h.delsok, status: "skriver" });
         } else if (h.type === "tekst") {
           svar += h.tekst;
           oppdaterSiste({ svar });
@@ -413,6 +428,7 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
     setTurer([]);
     setKilder([]);
     setAktiv(null);
+    setAvgrenset(null);
     setOktId(nyId());
     sessionStorage.removeItem(LAGRING);
     hentForslag().then(setForslag, () => {});
@@ -459,6 +475,8 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
           dom,
           sporsmal: t.sporsmal,
           sok: t.sok,
+          modus: t.modus,
+          delsok: t.delsok,
           svar: t.svar,
           kommentar,
           tidligere: turer.slice(0, indeks).map((f) => f.sporsmal),
@@ -496,10 +514,27 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
         }}
       />
       <div className="skjema-bunn">
-        <Aarstripe aar={arkiv.aar} valg={aarvalg} velg={setAarvalg} />
-        <button type="submit" className="primar" disabled={opptatt || !sporsmal.trim()}>
-          {opptatt ? "Leter …" : "Spør"}
-        </button>
+        {avgrenset ? (
+          <p className="avgrenset" aria-live="polite">
+            Spør bare i «{avgrenset.tittel}»{" "}
+            <button type="button" className="lenkeknapp" onClick={() => setAvgrenset(null)}>
+              hele arkivet
+            </button>
+          </p>
+        ) : (
+          <Aarstripe aar={arkiv.aar} valg={aarvalg} velg={setAarvalg} />
+        )}
+        <div className="skjema-knapper">
+          {!avgrenset && (
+            <label className="grundig" title="Flere søk og et lengre svar. Tar litt lenger tid.">
+              <input type="checkbox" checked={grundig} onChange={(e) => setGrundig(e.target.checked)} />
+              Grundig
+            </label>
+          )}
+          <button type="submit" className="primar" disabled={opptatt || !sporsmal.trim()}>
+            {opptatt ? "Leter …" : "Spør"}
+          </button>
+        </div>
       </div>
     </form>
   );
@@ -575,6 +610,10 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
               <article className="tur" key={i} ref={i === turer.length - 1 ? sisteTur : undefined}>
                 <h2 className="sporsmal">{t.sporsmal}</h2>
                 {t.sok && t.sok !== t.sporsmal && <p className="meta">Søkte etter: {t.sok}</p>}
+                {t.delsok && t.delsok.length > 0 && (
+                  <p className="meta">Søkte også etter: {t.delsok.join(" · ")}</p>
+                )}
+                {t.entekst && <p className="meta">Bare i «{t.entekst}»</p>}
                 {t.status === "venter" && <p className="meta leter">Leter i tekstene …</p>}
                 {t.svar && (
                   <SvarMedBakgrunn
@@ -707,6 +746,17 @@ export default function Samtale({ arkiv }: { arkiv: Arkiv }) {
                       </a>
                       <p className="meta">
                         {k.kilde === "bok" ? "Bok" : "Artikkel"}, {k.dato.slice(0, 4)}
+                        <button
+                          type="button"
+                          className="lenkeknapp kopier"
+                          aria-pressed={avgrenset?.fil === k.fil}
+                          onClick={() => {
+                            setAvgrenset(avgrenset?.fil === k.fil ? null : { fil: k.fil, tittel: k.tittel });
+                            felt.current?.focus({ preventScroll: true });
+                          }}
+                        >
+                          {avgrenset?.fil === k.fil ? "Spør i hele arkivet" : "Spør bare i denne"}
+                        </button>
                       </p>
                       <details
                         open={aktiv === k.nr}
